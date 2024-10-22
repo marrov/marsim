@@ -22,17 +22,18 @@ class DemandCurve:
         """Calculate standard deviation of demand across samples for each price point."""
         return np.std(self.demands, axis=1)
 
-    def to_dataframe(self) -> pd.DataFrame:
+    def to_df(self) -> pd.DataFrame:
         """Convert demand curve data to a pandas DataFrame."""
-        df = pd.DataFrame(
-            {
-                "price": self.prices,
-                "mean_demand": self.mean_demand,
-                "std_demand": self.std_demand,
-            }
-        )
-        for i in range(self.demands.shape[1]):
-            df[f"sample_{i}"] = self.demands[:, i]
+        data = {
+            "price": self.prices,
+            "mean_demand": self.mean_demand,
+            "std_demand": self.std_demand,
+        }
+        sample_data = {
+            f"sample_{i}": self.demands[:, i] for i in range(self.demands.shape[1])
+        }
+        data.update(sample_data)
+        df = pd.DataFrame(data)
         return df
 
     def plot(self, show_samples: bool = True, show_std: bool = True):

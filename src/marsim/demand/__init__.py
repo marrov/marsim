@@ -1,4 +1,4 @@
 from .curve import DemandCurve
-from .generator import DemandGeneratorScipy
+from .generator import DemandGenerator
 
-__all__ = ["DemandCurve", "DemandGeneratorScipy"]
+__all__ = ["DemandCurve", "DemandGenerator"]

@@ -1,50 +1,46 @@
-from typing import Protocol
-
 import numpy as np
 
 from .curve import DemandCurve
-from .functions import _generate_samples
+from .functions import SamplingFunctionProtocol, generate_samples_numba
 
 
-class DemandGenerator(Protocol):
-    def sample(self, price: float, n_samples: int) -> np.ndarray:
-        pass
-
-    def generate_demand_curve(
-        self, min_price: float, max_price: float, n_points: int, n_samples: int
-    ) -> DemandCurve:
-        pass
-
-
-class DemandGeneratorScipy:
+class DemandGenerator:
     def __init__(
         self,
         alpha: float = 100,
-        beta: float = 0.1,
-        gamma: float = 0,
-        noise_std: float = 0.1,
+        beta: float = 1,
+        gamma: float = 10,
+        noise_scale: float = 0.001,
+        sampling_function: SamplingFunctionProtocol = generate_samples_numba,
     ):
+        """
+        Initialize the demand generator class
+
+        Parameters
+        ----------
+        alpha : float, optional
+            Market size, by default 100
+        beta : float, optional
+            Slope of the elastic region, by default 1
+        gamma : float, optional
+            Location of the inflection point, by default 10
+        noise_scale : float, optional
+            Scale of the noise, by default 0.001
+        sampling_function : SamplingFunctionProtocol, optional
+            Function that generate the sampled demands, by default _generate_samples
+        """
         self.alpha = alpha
         self.beta = beta
-        self.gamma = gamma
-        self.noise_std = noise_std
+        self.gamma = -1 * gamma
+        self.noise_scale = noise_scale
+        self.sampling_function = sampling_function
         np.random.seed(42)
-
-    def sample(self, price: float, n_samples: int = 10) -> np.ndarray:
-        return _generate_samples(
-            np.array([price]),
-            self.alpha,
-            self.beta,
-            self.gamma,
-            self.noise_std,
-            n_samples,
-        )[0]
 
     def generate_demand_curve(
         self, min_price: float, max_price: float, n_points: int, n_samples: int = 10
     ) -> DemandCurve:
         prices = np.linspace(min_price, max_price, n_points)
-        demands = _generate_samples(
-            prices, self.alpha, self.beta, self.gamma, self.noise_std, n_samples
+        demands = self.sampling_function(
+            prices, self.alpha, self.beta, self.gamma, self.noise_scale, n_samples
         )
         return DemandCurve(prices=prices, demands=demands)

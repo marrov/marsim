@@ -5,7 +5,15 @@ import numpy as np
 
 
 class SamplingFunctionProtocol(Protocol):
-    def __call__(self, size: int, scale: float) -> np.ndarray: ...
+    def __call__(
+        self,
+        prices: np.ndarray,
+        alpha: float,
+        beta: float,
+        gamma: float,
+        noise_scale: float,
+        n_samples: int,
+    ) -> np.ndarray: ...
 
 
 @numba.jit(nopython=True)
@@ -24,6 +32,32 @@ def generate_samples_numba(
     noise_scale: float,
     n_samples: int,
 ) -> np.ndarray:
+    """
+    Generate demand samples based on the given parameters.
+    This function uses a Poisson distribution to generate the base demand
+    and adds log-normal noise to it.
+
+    Parameters
+    ----------
+    prices : np.ndarray
+        Array of price points for which to generate demand samples
+    alpha : float
+        Maximum demand parameter (scaling factor for the demand function)
+    beta : float
+        Price sensitivity parameter (higher values indicate greater sensitivity)
+    gamma : float
+        Offset parameter that shifts the demand curve horizontally
+    noise_scale : float
+        Standard deviation of the log-normal noise distribution
+    n_samples : int
+        Number of demand samples to generate for each price point
+
+    Returns
+    -------
+    np.ndarray
+        2D array of shape (len(prices), n_samples) containing the generated demand
+        samples for each price point
+    """
     n_points = len(prices)
     results = np.zeros((n_points, n_samples))
     for i in range(n_points):

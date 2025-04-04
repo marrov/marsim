@@ -41,6 +41,11 @@ class DemandGenerator:
     ) -> DemandCurve:
         prices = np.linspace(min_price, max_price, n_points)
         demands = self.sampling_function(
-            prices, self.alpha, self.beta, self.gamma, self.noise_scale, n_samples
+            prices=prices,
+            alpha=self.alpha,
+            beta=self.beta,
+            gamma=self.gamma,
+            noise_scale=self.noise_scale,
+            n_samples=n_samples,
         )
         return DemandCurve(prices=prices, demands=demands)
